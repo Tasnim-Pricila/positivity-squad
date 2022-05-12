@@ -9,7 +9,7 @@ app.use(cors());
 app.use(express.json());
 
 
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const uri = `mongodb+srv://${process.env.db_User}:${process.env.db_Password}@cluster0.r7rar.mongodb.net/myFirstDatabase?retryWrites=true&w=majority`;
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
 
@@ -19,10 +19,28 @@ async function run (){
         await client.connect();
         const workCollection = client.db('positiveWorks').collection('events');
 
-        app.post('/events', async(req, res) => {
+        // GET 
+        app.get('/events', async (req, res) => {
             const query = {};
             const cursor = workCollection.find(query);
-            const result = cursor.toArray();
+            const result = await cursor.toArray();
+            res.send(result);
+        })
+
+        // GET by ID 
+        app.get('/events/:id', async (req,res) => {
+            const id = req.params.id;
+            // console.log(id);
+            const query = { _id : ObjectId(id)}
+            const result = await workCollection.findOne(query);
+            res.send(result);
+        })
+
+        // DELETE
+        app.get('/events/:id', async (req,res) => {
+            const id = req.params.id;
+            const query = { _id : ObjectId(id)}
+            const result = await workCollection.deleteOne(query);
             res.send(result);
         })
     }
