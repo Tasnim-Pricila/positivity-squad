@@ -14,12 +14,13 @@ const uri = `mongodb+srv://${process.env.db_User}:${process.env.db_Password}@clu
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
 
 
-async function run (){
-    try{
+async function run() {
+    try {
         await client.connect();
         const workCollection = client.db('positiveWorks').collection('events');
+        const placeCollection = client.db('positiveWorks').collection('place');
 
-        // GET 
+        // GET Events
         app.get('/events', async (req, res) => {
             const query = {};
             const cursor = workCollection.find(query);
@@ -27,34 +28,42 @@ async function run (){
             res.send(result);
         })
 
+        // GET Place
+        app.get('/place', async (req, res) => {
+            const query = {};
+            const cursor = placeCollection.find(query);
+            const result = await cursor.toArray();
+            res.send(result);
+        })
+
         // GET by ID 
-        app.get('/events/:id', async (req,res) => {
+        app.get('/events/:id', async (req, res) => {
             const id = req.params.id;
             // console.log(id);
-            const query = { _id : ObjectId(id)}
+            const query = { _id: ObjectId(id) }
             const result = await workCollection.findOne(query);
             res.send(result);
         })
 
         // DELETE
-        app.get('/events/:id', async (req,res) => {
+        app.get('/events/:id', async (req, res) => {
             const id = req.params.id;
-            const query = { _id : ObjectId(id)}
+            const query = { _id: ObjectId(id) }
             const result = await workCollection.deleteOne(query);
             res.send(result);
         })
     }
-    finally{
+    finally {
 
     }
 }
 run().catch(console.dir);
 
 
-app.get('/',(req,res) => {
+app.get('/', (req, res) => {
     res.send('Positivity Squad is Coming to you...')
 })
 
-app.listen(port, ()=>{
+app.listen(port, () => {
     console.log('Listening to Port', port);
 })
