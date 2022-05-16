@@ -19,6 +19,7 @@ async function run() {
         await client.connect();
         const workCollection = client.db('positiveWorks').collection('events');
         const placeCollection = client.db('positiveWorks').collection('place');
+        const bookingCollection = client.db('positiveWorks').collection('bookings');
 
         // GET Events
         app.get('/events', async (req, res) => {
@@ -33,6 +34,18 @@ async function run() {
             const query = {};
             const cursor = placeCollection.find(query);
             const result = await cursor.toArray();
+            res.send(result);
+        })
+
+        // POST Booking 
+        app.post('/booking', async (req, res) => {
+            const booking = req.body;
+            const query = { slot: booking.slot, email: booking.email, date: booking.date }
+            const exists = await bookingCollection.findOne(query);
+            if(exists){
+                return res.send({success: false , booking: exists})
+            }
+            const result = await bookingCollection.insertOne(booking);
             res.send(result);
         })
 
