@@ -39,6 +39,20 @@ async function run() {
         const placeCollection = client.db('positiveWorks').collection('place');
         const bookingCollection = client.db('positiveWorks').collection('bookings');
         const userCollection = client.db('positiveWorks').collection('users');
+        const donorCollection = client.db('positiveWorks').collection('donors');
+
+
+        const verifyAdmin = async (req, res, next) => {
+            const requester = req.decoded.email;
+            const requesterAccount = await userCollection.findOne({email: requester});
+            if(requesterAccount.role === 'admin'){
+                next();
+            }
+            else{
+                res.status(403).send({message:'forbidden'});
+            }
+        }
+
 
         // GET Events
         app.get('/events', async (req, res) => {
@@ -89,22 +103,14 @@ async function run() {
 
 
         // ADmin 
-        app.put('/user/admin/:email', verifyJWT, async (req, res) => {
+        app.put('/user/admin/:email', verifyJWT, verifyAdmin, async (req, res) => {
             const email = req.params.email;
-            const requester = req.decoded.email;
-            const requesterAccount = await userCollection.findOne({email: requester});
-            if(requesterAccount.role === 'admin'){
                 const filter = { email: email };
                 const updatedUser = {
                     $set: {role : 'admin'}
                 }
                 const result = await userCollection.updateOne(filter, updatedUser);
                 res.send(result);
-            }
-            else{
-                res.status(403).send({message:'forbidden'});
-            }
-            
         })
 
         // Get Bookings by email 
@@ -175,6 +181,18 @@ async function run() {
             const id = req.params.id;
             const query = { _id: ObjectId(id) }
             const result = await workCollection.deleteOne(query);
+            res.send(result);
+        })
+
+        // Post Donor 
+        app.post('/donor', verifyJWT, async (req,res) => {
+            const donor = req.body;
+            const result = await donorCollection.insertOne(donor);
+            res.send(result);
+        })
+        // Get Donor 
+        app.get('/donor', verifyJWT, async (req,res) => {
+            const result = await donorCollection.find().toArray();
             res.send(result);
         })
     }
