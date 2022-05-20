@@ -57,7 +57,7 @@ async function run() {
         })
 
         // GET Users
-        app.get('/users', async (req, res) => {
+        app.get('/users', verifyJWT, async (req, res) => {
             const result = await userCollection.find().toArray();
             res.send(result);
         })
@@ -77,6 +77,34 @@ async function run() {
                     expiresIn: '1h'
                 });
             res.send({result, accessToken});
+        })
+
+        // Admin 
+        app.get('/admin/:email', async(req,res) => {
+            const email = req.params.email;
+            const user = await userCollection.findOne({email: email});
+            const isAdmin = user.role === 'admin';
+            res.send({admin : isAdmin})
+        })
+
+
+        // ADmin 
+        app.put('/user/admin/:email', verifyJWT, async (req, res) => {
+            const email = req.params.email;
+            const requester = req.decoded.email;
+            const requesterAccount = await userCollection.findOne({email: requester});
+            if(requesterAccount.role === 'admin'){
+                const filter = { email: email };
+                const updatedUser = {
+                    $set: {role : 'admin'}
+                }
+                const result = await userCollection.updateOne(filter, updatedUser);
+                res.send(result);
+            }
+            else{
+                res.status(403).send({message:'forbidden'});
+            }
+            
         })
 
         // Get Bookings by email 
