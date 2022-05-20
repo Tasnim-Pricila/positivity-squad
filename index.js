@@ -56,6 +56,12 @@ async function run() {
             res.send(result);
         })
 
+        // GET Users
+        app.get('/users', async (req, res) => {
+            const result = await userCollection.find().toArray();
+            res.send(result);
+        })
+        
         // Upsert User 
         app.put('/user/:email', async (req, res) => {
             const email = req.params.email;
