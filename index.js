@@ -191,8 +191,15 @@ async function run() {
             res.send(result);
         })
         // Get Donor 
-        app.get('/donor', verifyJWT, async (req,res) => {
+        app.get('/donors', verifyJWT, async (req,res) => {
             const result = await donorCollection.find().toArray();
+            res.send(result);
+        })
+        // DELETE Donor
+        app.get('/event/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: ObjectId(id) }
+            const result = await donorCollection.deleteOne(query);
             res.send(result);
         })
     }
